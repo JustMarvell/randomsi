@@ -16,6 +16,12 @@ public class FishSwimState : FishBaseState
 
     public override void FixedTick(float fixedDeltaTime)
     {
+        if (!controller.IsUnderwater)
+        {
+            controller.StateMachine.ChangeState(controller.AirborneState);
+            return;
+        }
+
         controller.ApplyMovement(controller.swimSpeed);
     }
 

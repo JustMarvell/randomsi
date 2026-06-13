@@ -15,6 +15,10 @@ public class FishController : MonoBehaviour
     public float avoidStrength = 1f;
     public LayerMask terrainMask;
 
+    [Header("Water")]
+    public float seaLevel = 0f;
+    public float jumpExitVelocityThreshold = 6f;
+
     [Header("Refs")]
     public Rigidbody rb;
     public PlayerInput playerInput;
@@ -29,6 +33,13 @@ public class FishController : MonoBehaviour
     FishIdleState idleState;
     FishSwimState swimState;
     FishSprintState sprintState;
+    FishAirborneState airborneState;
+    FishLandState landState;
+
+    public bool IsUnderwater => transform.position.y < seaLevel;
+
+    public FishBaseState AirborneState => airborneState;
+    public FishBaseState LandState => landState;
 
     void Awake()
     {
@@ -45,6 +56,8 @@ public class FishController : MonoBehaviour
         idleState = new FishIdleState(this);
         swimState = new FishSwimState(this);
         sprintState = new FishSprintState(this);
+        airborneState = new FishAirborneState(this);
+        landState = new FishLandState(this);
     }
 
     void Start()
@@ -88,5 +101,13 @@ public class FishController : MonoBehaviour
 
         Vector3 targetVel = dir.normalized * targetSpeed;
         rb.linearVelocity = Vector3.Lerp(rb.linearVelocity, targetVel, acceleration * Time.fixedDeltaTime);
+
+        if (transform.position.y > controller.seaLevel && rb.linearVelocity.y > 0 && rb.linearVelocity.y < controller.jumpExitVelocityThreshold)
+        {
+            rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
+            Vector3 pos = transform.position;
+            pos.y = controller.seaLevel;
+            transform.position = pos;
+        }
     }
 }
