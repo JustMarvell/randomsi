@@ -83,6 +83,7 @@ public class TerrainManager : MonoBehaviour
         GameObject go = new GameObject($"Chunk_{coord.x}_{coord.y}");
         go.transform.parent = transform;
         go.transform.position = new Vector3(coord.x * chunkSize, 0f, coord.y * chunkSize);
+        go.layer = LayerMask.NameToLayer("Terrain");
 
         TerrainChunk chunk = go.AddComponent<TerrainChunk>();
         Vector2 worldOffset = new Vector2(coord.x * chunkSize, coord.y * chunkSize);
