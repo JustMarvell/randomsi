@@ -8,8 +8,6 @@ public class FishSprintState : FishBaseState
 
     public override void Tick(float deltaTime)
     {
-        controller.ApplyRotation();
-
         if (controller.MoveInput.sqrMagnitude < 0.01f)
             controller.StateMachine.ChangeState(controller.IdleState);
         else if (!controller.SprintHeld)

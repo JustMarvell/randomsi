@@ -15,9 +15,9 @@ public class FishController : MonoBehaviour
     [Header("Refs")]
     public Rigidbody rb;
     public PlayerInput playerInput;
+    public FishCameraRig cameraRig;
 
     InputAction moveAction;
-    InputAction lookAction;
     InputAction ascendAction;
     InputAction descendAction;
     InputAction sprintAction;
@@ -33,7 +33,6 @@ public class FishController : MonoBehaviour
         rb.useGravity = false;
 
         moveAction = playerInput.actions["Move"];
-        lookAction = playerInput.actions["Look"];
         ascendAction = playerInput.actions["Jump"];
         descendAction = playerInput.actions["Descend"];
         sprintAction = playerInput.actions["Sprint"];
@@ -53,7 +52,6 @@ public class FishController : MonoBehaviour
     void FixedUpdate() => StateMachine.FixedTick(Time.fixedDeltaTime);
 
     public Vector2 MoveInput => moveAction.ReadValue<Vector2>();
-    public Vector2 LookInput => lookAction.ReadValue<Vector2>();
     public bool AscendHeld => ascendAction.IsPressed();
     public bool DescendHeld => descendAction.IsPressed();
     public bool SprintHeld => sprintAction.IsPressed();
@@ -62,29 +60,24 @@ public class FishController : MonoBehaviour
     public FishBaseState SwimState => swimState;
     public FishBaseState SprintState => sprintState;
 
-    // Applies forward/vertical movement relative to current facing
+    // Moves and rotates body relative to camera-facing direction
     public void ApplyMovement(float targetSpeed)
     {
         Vector2 move = MoveInput;
-        Vector3 dir = transform.forward * move.y + transform.right * move.x;
+        Vector3 dir = cameraRig.Forward * move.y + cameraRig.Right * move.x;
 
         float vertical = 0f;
         if (AscendHeld) vertical += 1f;
         if (DescendHeld) vertical -= 1f;
         dir += Vector3.up * vertical;
 
+        if (dir.sqrMagnitude > 0.01f)
+        {
+            Quaternion targetRot = Quaternion.LookRotation(dir.normalized);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, turnSpeed * Time.fixedDeltaTime * Mathf.Deg2Rad);
+        }
+
         Vector3 targetVel = dir.normalized * targetSpeed;
         rb.linearVelocity = Vector3.Lerp(rb.linearVelocity, targetVel, acceleration * Time.fixedDeltaTime);
-    }
-
-    // Rotates body using look input (yaw + pitch)
-    public void ApplyRotation()
-    {
-        Vector2 look = LookInput;
-        float yaw = look.x * turnSpeed * Time.deltaTime;
-        float pitch = -look.y * pitchSpeed * Time.deltaTime;
-
-        transform.Rotate(Vector3.up, yaw, Space.World);
-        transform.Rotate(Vector3.right, pitch, Space.Self);
     }
 }

@@ -8,8 +8,6 @@ public class FishIdleState : FishBaseState
 
     public override void Tick(float deltaTime)
     {
-        controller.ApplyRotation();
-
         if (controller.MoveInput.sqrMagnitude > 0.01f)
             controller.StateMachine.ChangeState(controller.SwimState);
     }
