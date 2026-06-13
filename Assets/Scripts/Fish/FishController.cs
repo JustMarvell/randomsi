@@ -102,11 +102,11 @@ public class FishController : MonoBehaviour
         Vector3 targetVel = dir.normalized * targetSpeed;
         rb.linearVelocity = Vector3.Lerp(rb.linearVelocity, targetVel, acceleration * Time.fixedDeltaTime);
 
-        if (transform.position.y > controller.seaLevel && rb.linearVelocity.y > 0 && rb.linearVelocity.y < controller.jumpExitVelocityThreshold)
+        if (transform.position.y > seaLevel && rb.linearVelocity.y > 0 && rb.linearVelocity.y < jumpExitVelocityThreshold)
         {
             rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
             Vector3 pos = transform.position;
-            pos.y = controller.seaLevel;
+            pos.y = seaLevel;
             transform.position = pos;
         }
     }
