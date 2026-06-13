@@ -496,7 +496,9 @@ MonoBehaviour:
   avoidStrength: 1
   terrainMask:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 64
+  seaLevel: 10
+  jumpExitVelocityThreshold: 6
   rb: {fileID: 799060561}
   playerInput: {fileID: 799060559}
   cameraRig: {fileID: 216119364}
