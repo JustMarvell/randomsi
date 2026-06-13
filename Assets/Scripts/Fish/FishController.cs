@@ -11,6 +11,9 @@ public class FishController : MonoBehaviour
     public float turnSpeed = 90f;
     public float pitchSpeed = 60f;
     public float acceleration = 5f;
+    public float avoidDistance = 2f;
+    public float avoidStrength = 1f;
+    public LayerMask terrainMask;
 
     [Header("Refs")]
     public Rigidbody rb;
@@ -31,6 +34,7 @@ public class FishController : MonoBehaviour
     {
         if (rb == null) rb = GetComponent<Rigidbody>();
         rb.useGravity = false;
+        rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
 
         moveAction = playerInput.actions["Move"];
         ascendAction = playerInput.actions["Jump"];
@@ -75,6 +79,11 @@ public class FishController : MonoBehaviour
         {
             Quaternion targetRot = Quaternion.LookRotation(dir.normalized);
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, turnSpeed * Time.fixedDeltaTime * Mathf.Deg2Rad);
+
+            if (Physics.Raycast(transform.position, dir.normalized, out RaycastHit hit, avoidDistance, terrainMask))
+            {
+                dir = Vector3.Slerp(dir.normalized, hit.normal, avoidStrength).normalized;
+            }
         }
 
         Vector3 targetVel = dir.normalized * targetSpeed;
