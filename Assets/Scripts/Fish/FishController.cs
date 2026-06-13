@@ -1,0 +1,90 @@
+using UnityEngine;
+using UnityEngine.InputSystem;
+
+[RequireComponent(typeof(Rigidbody))]
+public class FishController : MonoBehaviour
+{
+    [Header("Movement")]
+    public float swimSpeed = 4f;
+    public float sprintSpeed = 8f;
+    public float verticalSpeed = 3f;
+    public float turnSpeed = 90f;
+    public float pitchSpeed = 60f;
+    public float acceleration = 5f;
+
+    [Header("Refs")]
+    public Rigidbody rb;
+    public PlayerInput playerInput;
+
+    InputAction moveAction;
+    InputAction lookAction;
+    InputAction ascendAction;
+    InputAction descendAction;
+    InputAction sprintAction;
+
+    public FishStateMachine StateMachine { get; private set; }
+    FishIdleState idleState;
+    FishSwimState swimState;
+    FishSprintState sprintState;
+
+    void Awake()
+    {
+        if (rb == null) rb = GetComponent<Rigidbody>();
+        rb.useGravity = false;
+
+        moveAction = playerInput.actions["Move"];
+        lookAction = playerInput.actions["Look"];
+        ascendAction = playerInput.actions["Jump"];
+        descendAction = playerInput.actions["Descend"];
+        sprintAction = playerInput.actions["Sprint"];
+
+        StateMachine = new FishStateMachine();
+        idleState = new FishIdleState(this);
+        swimState = new FishSwimState(this);
+        sprintState = new FishSprintState(this);
+    }
+
+    void Start()
+    {
+        StateMachine.Initialize(idleState);
+    }
+
+    void Update() => StateMachine.Tick(Time.deltaTime);
+    void FixedUpdate() => StateMachine.FixedTick(Time.fixedDeltaTime);
+
+    public Vector2 MoveInput => moveAction.ReadValue<Vector2>();
+    public Vector2 LookInput => lookAction.ReadValue<Vector2>();
+    public bool AscendHeld => ascendAction.IsPressed();
+    public bool DescendHeld => descendAction.IsPressed();
+    public bool SprintHeld => sprintAction.IsPressed();
+
+    public FishBaseState IdleState => idleState;
+    public FishBaseState SwimState => swimState;
+    public FishBaseState SprintState => sprintState;
+
+    // Applies forward/vertical movement relative to current facing
+    public void ApplyMovement(float targetSpeed)
+    {
+        Vector2 move = MoveInput;
+        Vector3 dir = transform.forward * move.y + transform.right * move.x;
+
+        float vertical = 0f;
+        if (AscendHeld) vertical += 1f;
+        if (DescendHeld) vertical -= 1f;
+        dir += Vector3.up * vertical;
+
+        Vector3 targetVel = dir.normalized * targetSpeed;
+        rb.linearVelocity = Vector3.Lerp(rb.linearVelocity, targetVel, acceleration * Time.fixedDeltaTime);
+    }
+
+    // Rotates body using look input (yaw + pitch)
+    public void ApplyRotation()
+    {
+        Vector2 look = LookInput;
+        float yaw = look.x * turnSpeed * Time.deltaTime;
+        float pitch = -look.y * pitchSpeed * Time.deltaTime;
+
+        transform.Rotate(Vector3.up, yaw, Space.World);
+        transform.Rotate(Vector3.right, pitch, Space.Self);
+    }
+}
